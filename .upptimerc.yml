@@ -1,31 +1,69 @@
-# Change these first
-owner: upptime # Your GitHub organization or username, where this repository lives
-repo: upptime # The name of this repository
+owner: jadenschwartz22-ops
+repo: protoquiz-status
 
 sites:
-  - name: Google
-    url: https://www.google.com
-  - name: Wikipedia
-    url: https://en.wikipedia.org
-  - name: Hacker News
-    url: https://news.ycombinator.com
-  - name: Test Broken Site
-    url: https://thissitedoesnotexist.koj.co
+  - name: ProtoQuiz Marketing Site
+    url: https://protoquiz.com
+  - name: ProtoQuiz Agency Page
+    url: https://protoquiz.com/agency/
+  - name: ProtoQuiz Trust & Security
+    url: https://protoquiz.com/trust/
+  - name: ProtoQuiz B2B Terms
+    url: https://protoquiz.com/b2b/terms/
+  - name: Backend API (api.protoquiz.com)
+    url: https://api.protoquiz.com/api/monitor?type=health
+    expectedStatusCodes:
+      - 200
+  - name: B2B Platform (Highland reference)
+    url: https://highland.protoquiz.com
+  - name: B2B Platform (Demo)
+    url: https://southmetro.protoquiz.com
 
 status-website:
-  # Add your custom domain name, or remove the `cname` line if you don't have a domain
-  # Uncomment the `baseUrl` line if you don't have a custom domain and add your repo name there
-  cname: demo.upptime.js.org
-  # baseUrl: /your-repo-name
-  logoUrl: https://raw.githubusercontent.com/upptime/upptime.js.org/master/static/img/icon.svg
-  name: Upptime
-  introTitle: "**Upptime** is the open-source uptime monitor and status page, powered entirely by GitHub."
-  introMessage: This is a sample status page which uses **real-time** data from our [GitHub repository](https://github.com/upptime/upptime). No server required — just GitHub Actions, Issues, and Pages. [**Get your own for free**](https://github.com/upptime/upptime)
+  cname: status.protoquiz.com
+  logoUrl: https://protoquiz.com/logo-256.png
+  name: ProtoQuiz Status
+  introTitle: "**ProtoQuiz Status** — real-time uptime and incident history for protoquiz.com, the backend API, and B2B agency subdomains."
+  introMessage: |
+    This page tracks the uptime of every public ProtoQuiz surface. Checks run every **5 minutes**
+    via GitHub Actions. Historical uptime, response times, and incident details are public.
+
+    Our SLA commitment is **99.5% monthly uptime** on the backend API and B2B platform
+    (per the [B2B Master Services Agreement §7.5](https://protoquiz.com/legal/msa.html)).
+
+    For incident notifications, watch this repository on
+    [GitHub]($SITE_URL/issues) or subscribe to the RSS feed.
   navbar:
     - title: Status
       href: /
+    - title: Trust & Security
+      href: https://protoquiz.com/trust/
+    - title: Agency Platform
+      href: https://protoquiz.com/agency/
     - title: GitHub
       href: https://github.com/$OWNER/$REPO
 
-# Upptime also supports notifications, assigning issues, and more
-# See https://upptime.js.org/docs/configuration
+# Notification channels — wire up later if/when you want alerts in Discord/Slack.
+# See https://upptime.js.org/docs/notifications for setup.
+# notifications:
+#   - type: discord
+#     webhook: $DISCORD_WEBHOOK_URL
+
+# Assign incidents to a default user/team.
+assignees:
+  - jadenschwartz22-ops
+
+# Workflow tuning — every 5 minutes is the practical floor on GitHub Actions
+# (free-tier minutes budget). Don't go lower without enabling paid runners.
+workflowSchedule:
+  graphs: "0 0 * * *"        # daily graph regeneration at midnight UTC
+  responseTime: "0 23 * * *" # daily response-time summary at 23:00 UTC
+  staticSite: "0 1 * * *"    # daily site regeneration at 01:00 UTC
+  summary: "0 0 * * *"       # daily README summary update
+  updates: "0 3 * * *"       # daily upstream Upptime update check
+  updateTemplate: "0 0 1 * *" # monthly template update check
+  uptime: "*/5 * * * *"      # every 5 minutes (the actual uptime check)
+
+# Skip optional features we don't need yet.
+skipDescriptionUpdate: false
+skipPoweredByReadme: false
