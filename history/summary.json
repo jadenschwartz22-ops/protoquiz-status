@@ -76,18 +76,20 @@
     "url": "https://api.protoquiz.com/api/monitor?type=health",
     "icon": "https://icons.duckduckgo.com/ip3/api.protoquiz.com.ico",
     "slug": "backend-api-api-protoquiz-com",
-    "status": "down",
-    "uptime": "100.00%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "100.00%",
-    "time": 1286,
-    "timeDay": 1134,
-    "timeWeek": 1409,
-    "timeMonth": 1286,
-    "timeYear": 1286,
-    "dailyMinutesDown": {}
+    "status": "up",
+    "uptime": "99.19%",
+    "uptimeDay": "91.29%",
+    "uptimeWeek": "98.76%",
+    "uptimeMonth": "99.19%",
+    "uptimeYear": "99.19%",
+    "time": 1254,
+    "timeDay": 1026,
+    "timeWeek": 1343,
+    "timeMonth": 1254,
+    "timeYear": 1254,
+    "dailyMinutesDown": {
+      "2026-05-31": 125
+    }
   },
   {
     "name": "B2B Platform (Highland reference)",
