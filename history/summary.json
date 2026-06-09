@@ -76,19 +76,20 @@
     "url": "https://api.protoquiz.com/api/monitor?type=health",
     "icon": "https://icons.duckduckgo.com/ip3/api.protoquiz.com.ico",
     "slug": "backend-api-api-protoquiz-com",
-    "status": "up",
+    "status": "down",
     "uptime": "99.55%",
-    "uptimeDay": "100.00%",
+    "uptimeDay": "99.99%",
     "uptimeWeek": "100.00%",
     "uptimeMonth": "99.55%",
     "uptimeYear": "99.55%",
-    "time": 1338,
-    "timeDay": 2388,
-    "timeWeek": 1462,
-    "timeMonth": 1338,
-    "timeYear": 1338,
+    "time": 1288,
+    "timeDay": 1247,
+    "timeWeek": 1292,
+    "timeMonth": 1288,
+    "timeYear": 1288,
     "dailyMinutesDown": {
-      "2026-05-31": 125
+      "2026-05-31": 125,
+      "2026-06-09": 0
     }
   },
   {
