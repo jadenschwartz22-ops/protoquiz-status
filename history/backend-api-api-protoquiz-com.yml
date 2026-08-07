@@ -1,7 +1,7 @@
 url: https://api.protoquiz.com/api/monitor?type=health
 status: up
 code: 200
-responseTime: 399
-lastUpdated: 2026-08-07T01:42:17.463Z
+responseTime: 336
+lastUpdated: 2026-08-07T23:38:38.720Z
 startTime: 2026-05-20T22:18:33.026Z
 generator: Upptime <https://github.com/upptime/upptime>
