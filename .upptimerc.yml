@@ -2,24 +2,11 @@
 # minutes are free, so this is the one scheduled probe we run on GitHub. Discord alerts
 # come from the repo secret NOTIFICATION_DISCORD_WEBHOOK_URL (Upptime reads secrets, not
 # this file). Order below is the order on the page; CSS turns the first card of each
-# group into a section header, so keep the group boundaries (1, 5, 7, 10) in sync.
+# group into a section header, so keep the group boundaries (1, 3, 6, 7) in sync.
 owner: jadenschwartz22-ops
 repo: protoquiz-status
 
 sites:
-  # Website
-  - name: Website · protoquiz.com
-    url: https://protoquiz.com
-    slug: proto-quiz-marketing-site
-  - name: Website · Agency program
-    url: https://protoquiz.com/agency/
-    slug: proto-quiz-agency-page
-  - name: Website · Trust & Security
-    url: https://protoquiz.com/trust/
-    slug: proto-quiz-trust-and-security
-  - name: Website · Legal & terms
-    url: https://protoquiz.com/b2b/terms/
-    slug: proto-quiz-b2-b-terms
   # Consumer app (iOS and Android share this backend)
   - name: Consumer App · Backend API
     url: https://api.protoquiz.com/api/monitor?type=health
@@ -47,6 +34,19 @@ sites:
   - name: EMS Census · Public report
     url: https://protoquiz.com/census/
     slug: ems-census-public-report
+  # Website
+  - name: Website · protoquiz.com
+    url: https://protoquiz.com
+    slug: proto-quiz-marketing-site
+  - name: Website · Agency program
+    url: https://protoquiz.com/agency/
+    slug: proto-quiz-agency-page
+  - name: Website · Trust & Security
+    url: https://protoquiz.com/trust/
+    slug: proto-quiz-trust-and-security
+  - name: Website · Legal & terms
+    url: https://protoquiz.com/b2b/terms/
+    slug: proto-quiz-b2-b-terms
 
 status-website:
   cname: status.protoquiz.com
@@ -79,13 +79,6 @@ status-website:
       content: Live uptime and incident history for ProtoQuiz — consumer app, agency platform, and EMS Census.
     - name: theme-color
       content: "#06050a"
-  i18n:
-    liveStatus: Services
-    allSystemsOperational: All services operational
-    activeIncidents: Active incidents
-    pastIncidents: Incident history
-    overallUptime: "Uptime"
-    averageResponseTime: "Response time"
   customHeadHtml: |
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,18 +134,30 @@ status-website:
     footer { color: #8a8478; font-size: 0.85rem; }
     footer a { color: #a8a399; }
     /* Section labels: the first card of each group carries the group name above it.
-       Boundaries must match the `sites` order: 1 Website, 5 Consumer App, 7 Agency Platform, 10 EMS Census. */
+       Boundaries must match the `sites` order: 1 Consumer App, 3 Agency Platform, 6 EMS Census, 7 Website. */
     .live-status article.graph { position: relative; }
-    .live-status article.graph:nth-of-type(1), .live-status article.graph:nth-of-type(5),
-    .live-status article.graph:nth-of-type(7), .live-status article.graph:nth-of-type(10) { margin-top: 2.6rem; }
-    .live-status article.graph:nth-of-type(1)::before, .live-status article.graph:nth-of-type(5)::before,
-    .live-status article.graph:nth-of-type(7)::before, .live-status article.graph:nth-of-type(10)::before {
+    .live-status article.graph:nth-of-type(1), .live-status article.graph:nth-of-type(3),
+    .live-status article.graph:nth-of-type(6), .live-status article.graph:nth-of-type(7) { margin-top: 2.6rem; }
+    .live-status article.graph:nth-of-type(1)::before, .live-status article.graph:nth-of-type(3)::before,
+    .live-status article.graph:nth-of-type(6)::before, .live-status article.graph:nth-of-type(7)::before {
       position: absolute; left: 0; top: -1.7rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
       text-transform: uppercase; color: #ffb000; font-family: Inter, sans-serif; }
-    .live-status article.graph:nth-of-type(1)::before { content: "Website"; }
-    .live-status article.graph:nth-of-type(5)::before { content: "Consumer App · iOS & Android"; }
-    .live-status article.graph:nth-of-type(7)::before { content: "Agency Platform · B2B"; }
-    .live-status article.graph:nth-of-type(10)::before { content: "EMS Census"; }
+    .live-status article.graph:nth-of-type(1)::before { content: "Consumer App · iOS & Android"; }
+    .live-status article.graph:nth-of-type(3)::before { content: "Agency Platform · B2B"; }
+    .live-status article.graph:nth-of-type(6)::before { content: "EMS Census"; }
+    .live-status article.graph:nth-of-type(7)::before { content: "Website"; }
+    /* Graph: Upptime paints the week PNG as the card background, cropped to a blob. Move it to a
+       pseudo-element on the right 44%, stretch the full week to the card, fade the left edge. */
+    article.graph { background-image: none !important; }
+    article.graph::after {
+      content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 44%; pointer-events: none; border-radius: 0 10px 10px 0;
+      background-image: var(--background); background-size: 100% 100%; background-repeat: no-repeat;
+      opacity: 0.55; filter: hue-rotate(-12deg) saturate(1.2) brightness(0.95);
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 35%); mask-image: linear-gradient(to right, transparent, #000 35%); }
+    article.graph.degraded::after { filter: hue-rotate(-130deg) saturate(1.6); }
+    article.graph.down::after { filter: hue-rotate(190deg) saturate(1.8); }
+    article.graph h4 a, article.graph .data { position: relative; z-index: 1; }
+
 
 assignees:
   - jadenschwartz22-ops
