@@ -87,7 +87,7 @@ const html = `<!doctype html>
 <title>ProtoQuiz Status</title>
 <meta name="description" content="Live availability and incident history for ProtoQuiz: the consumer app, the agency platform, and the EMS Census.">
 <meta name="theme-color" content="#06050a">
-<link rel="icon" href="https://protoquiz.com/logo-192.png">
+<link rel="icon" href="https://protoquiz.com/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="https://protoquiz.com/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="https://protoquiz.com/favicon-192.png"><link rel="apple-touch-icon" href="https://protoquiz.com/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="ProtoQuiz incidents" href="https://github.com/${cfg.owner}/${cfg.repo}/issues.atom">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -96,12 +96,12 @@ const html = `<!doctype html>
 *{box-sizing:border-box}html{color-scheme:dark}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
 a{color:inherit}.wrap{max-width:960px;margin:0 auto;padding:0 24px}.mono{font-family:var(--mono)}
 header{border-bottom:1px solid var(--line);background:rgba(6,5,10,.9);backdrop-filter:blur(8px);position:sticky;top:0;z-index:2}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:-.01em}.brand img{width:26px;height:26px;border-radius:6px}.brand span{color:var(--muted);font-weight:500}
-nav a{color:var(--ink-soft);text-decoration:none;font-size:13.5px;margin-left:22px}nav a:hover{color:var(--ink)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;font:600 15px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}.brand img{width:40px;height:40px}.brand span{color:var(--muted);font-weight:500;margin-left:2px}
+nav a{color:var(--ink-soft);text-decoration:none;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;margin-left:26px}nav a:hover{color:var(--amber)}
 .hero{padding:44px 0 28px;border-bottom:1px solid var(--line)}
 .eyebrow{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin:0 0 14px}
-h1{margin:0;font-size:32px;line-height:1.15;letter-spacing:-.02em;font-weight:700;display:flex;align-items:center;gap:14px}
+h1{margin:0;font:600 30px/1.15 var(--mono);letter-spacing:.02em;text-transform:uppercase;display:flex;align-items:center;gap:16px}
 .dot{width:12px;height:12px;border-radius:50%;background:var(--up);box-shadow:0 0 0 4px rgba(0,210,122,.18)}.dot.degraded{background:var(--deg);box-shadow:0 0 0 4px rgba(255,176,0,.18)}.dot.down{background:var(--down);box-shadow:0 0 0 4px rgba(255,59,48,.18)}
 .sub{margin:10px 0 0;color:var(--muted);font:13px/1.6 var(--mono)}.sub b{color:var(--ink-soft);font-weight:500}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:26px 0 0}
@@ -125,10 +125,10 @@ h2{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;col
 .incident{padding:12px 14px;margin:0 0 8px;border-left:2px solid var(--down);background:var(--panel);border-radius:0 8px 8px 0}.incident.open{border-color:var(--deg)}
 .incident h4{margin:0;font-size:14px;font-weight:600}.incident h4 a{text-decoration:none}.incident h4 a:hover{color:var(--amber)}.incident .m{margin:4px 0 0;font:12px/1.5 var(--mono);color:var(--muted)}
 footer{margin:56px 0 44px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}footer a{color:var(--ink-soft)}
-@media(max-width:680px){.tiles{grid-template-columns:repeat(2,1fr)}h1{font-size:26px}nav a{margin-left:14px}.log .day{grid-template-columns:1fr;gap:4px}.meta .r{display:none}}
+@media(max-width:680px){.tiles{grid-template-columns:repeat(2,1fr)}h1{font-size:20px}nav a{margin-left:14px;font-size:11px}.brand img{width:32px;height:32px}.log .day{grid-template-columns:1fr;gap:4px}.meta .r{display:none}}
 </style></head><body>
-<header><div class="wrap"><a class="brand" href="/"><img src="https://protoquiz.com/logo-256.png" alt="">ProtoQuiz <span>Status</span></a>
-<nav><a href="https://protoquiz.com">Website</a><a href="https://protoquiz.com/agency/">Agency platform</a><a href="https://protoquiz.com/census/">EMS Census</a><a href="https://protoquiz.com/trust/">Trust &amp; Security</a></nav></div></header>
+<header><div class="wrap"><a class="brand" href="/"><img src="https://protoquiz.com/logo-128.png" alt="">ProtoQuiz&trade; <span>Status</span></a>
+<nav><a href="https://protoquiz.com">Website</a><a href="https://protoquiz.com/agency/">For agencies</a><a href="https://protoquiz.com/census/">Census</a><a href="https://protoquiz.com/trust/">Trust</a></nav></div></header>
 <main class="wrap">
 <section class="hero">
 <p class="eyebrow">System status</p>
