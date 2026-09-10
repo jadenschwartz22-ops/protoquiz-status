@@ -159,6 +159,24 @@ status-website:
     article.graph h4 a, article.graph .data { position: relative; z-index: 1; }
 
 
+# Top-level, per Upptime. Placeholders ($UPTIME, $TIME, $NUMBER...) are Upptime's. No emoji.
+i18n:
+  liveStatus: Services
+  allSystemsOperational: All services operational
+  activeIncidents: Active incidents
+  activeIncidentSummary: Opened $DATE, $POSTS updates
+  pastIncidents: Incident history
+  pastIncidentsResolved: Resolved in $MINUTES minutes, $POSTS updates
+  incidentReport: "Incident $NUMBER report"
+  overallUptime: "Uptime $UPTIME"
+  overallUptimeTitle: Uptime
+  averageResponseTime: "Response $TIMEms"
+  averageResponseTimeTitle: Response time
+  up: Up
+  down: Down
+  degraded: Degraded
+  footer: "ProtoQuiz Status is [open source]($REPO). Monitoring by [Upptime](https://upptime.js.org)."
+
 assignees:
   - jadenschwartz22-ops
 
