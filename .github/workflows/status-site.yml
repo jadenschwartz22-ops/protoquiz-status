@@ -1,0 +1,32 @@
+# Builds the public status page (dist/) from Upptime's history commits and pushes it to
+# the `status-site` branch, which GitHub Pages serves at status.protoquiz.com.
+# Public repo: these minutes are free. Upptime's own Sapper site (gh-pages) is unused.
+name: Status site
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    paths: [scripts/build-status.mjs, .github/workflows/status-site.yml]
+concurrency: { group: status-site, cancel-in-progress: true }
+permissions: { contents: write, issues: read }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - name: Fetch 92 days of check history
+        run: git fetch --shallow-since="92 days ago" origin main || git fetch --unshallow origin main
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i --no-save js-yaml@4
+      - name: Incidents from issues
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh api --paginate "repos/${{ github.repository }}/issues?state=all&labels=status&per_page=100" -q '[.[]|select(.pull_request==null)|{title,state,html_url,created_at,closed_at}]' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const a=s.split("\n").filter(Boolean).flatMap(x=>JSON.parse(x));require("fs").writeFileSync("incidents.json",JSON.stringify(a))})'
+      - run: node scripts/build-status.mjs
+      - name: Publish dist to status-site
+        run: |
+          cd dist && git init -q -b status-site && git add -A
+          git -c user.name=status-bot -c user.email=status-bot@users.noreply.github.com commit -qm "status site $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" status-site
