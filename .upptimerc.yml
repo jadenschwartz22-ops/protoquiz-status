@@ -79,6 +79,13 @@ status-website:
       content: Live uptime and incident history for ProtoQuiz — consumer app, agency platform, and EMS Census.
     - name: theme-color
       content: "#06050a"
+  # Upptime hardcodes a check-mark emoji in the "all operational" banner and warning/stop
+  # emoji in incident titles, outside i18n. Strip them after render (brand rule: no emoji).
+  js: |
+    (function(){var re=/[\u2705\u26A0\uFE0F\u{1F6D1}\u{1F7E9}\u{1F7E5}\u{1F7E8}]\s*/gu;
+    function strip(){document.querySelectorAll('main article, main h4, main h3, main h2').forEach(function(el){
+      el.childNodes.forEach(function(n){if(n.nodeType===3&&re.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(re,'');}});});}
+    new MutationObserver(strip).observe(document.documentElement,{childList:true,subtree:true});strip();})();
   customHeadHtml: |
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
