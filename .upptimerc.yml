@@ -45,9 +45,9 @@ status-website:
 
 # Notification channels — wire up later if/when you want alerts in Discord/Slack.
 # See https://upptime.js.org/docs/notifications for setup.
-# notifications:
-#   - type: discord
-#     webhook: $DISCORD_WEBHOOK_URL
+notifications:
+  - type: discord
+    webhook: $DISCORD_WEBHOOK_URL
 
 # Assign incidents to a default user/team.
 assignees:
