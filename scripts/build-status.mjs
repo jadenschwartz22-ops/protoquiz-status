@@ -44,7 +44,7 @@ const services = cfg.sites.map(site => {
     group, label, url: site.url, status: hist.status,
     uptime: { d1: pct(last24), d7: pct(win(24 * 7)), d30: pct(win(24 * 30)), d90: pct(rows) },
     resp: last24.length ? Math.round(last24.reduce((a, r) => a + r.ms, 0) / last24.length) : null,
-    spark: last24.slice().reverse().map(r => r.ms),
+    hours: (() => { const H = 24 * 7, out = []; for (let i = H - 1; i >= 0; i--) { const a = now - (i + 1) * 36e5, b = now - i * 36e5; const d = rows.filter(r => r.t > a && r.t <= b); out.push({ ms: d.length ? Math.round(d.reduce((x, r) => x + r.ms, 0) / d.length) : null, down: d.some(r => r.status === 'down') }); } return out; })(),
     days, checked: hist.lastUpdated,
   };
 });
@@ -79,6 +79,17 @@ const spark = (ms) => {
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-label="24-hour response time"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
 };
 const groupUptime = g => { const v = g.items.map(i => i.uptime.d30).filter(x => x != null); return v.length ? Math.min(...v) : null; };
+const chart = (s) => {
+  const h = s.hours, w = 1000, ht = 64, pad = 4;
+  const vals = h.map(x => x.ms).filter(x => x != null);
+  if (vals.length < 2) return `<div class="chart empty">Collecting data</div>`;
+  const max = Math.max(...vals), min = 0;
+  const x = i => (i / (h.length - 1) * w).toFixed(1), y = v => (ht - pad - (v - min) / Math.max(max - min, 1) * (ht - 2 * pad)).toFixed(1);
+  let d = '', open = false;
+  h.forEach((p, i) => { if (p.ms == null) { open = false; return; } d += (open ? ' L' : ' M') + x(i) + ' ' + y(p.ms); open = true; });
+  const downs = h.map((p, i) => p.down ? `<rect x="${x(i)}" y="0" width="${(w / h.length).toFixed(1)}" height="${ht}" class="dn"/>` : '').join('');
+  return `<svg class="chart" viewBox="0 0 ${w} ${ht}" preserveAspectRatio="none" aria-label="Response time, last 7 days">${downs}<path d="${d.trim()}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
+};
 const bar = s => `<div class="bar" role="img" aria-label="90-day availability">${s.days.map(d =>
   `<i class="${d.st}" title="${d.date}${d.n ? `: ${fmtPct(d.up)} uptime, ${d.n} checks` : ': no data'}"></i>`).join('')}</div>`;
 
@@ -109,8 +120,7 @@ h2{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;col
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .name{font-weight:600;font-size:15px}.name a{text-decoration:none}.name a:hover{color:var(--amber)}
 .pill{font:500 12px/1 var(--mono);white-space:nowrap;color:var(--up)}.pill.down{color:var(--down)}.pill.degraded{color:var(--deg)}
-.bar{display:flex;gap:3px;margin:14px 0 10px;height:24px}.bar i{flex:1;border-radius:1.5px;background:var(--none);min-width:2px}
-.bar i.up{background:var(--up);opacity:.75}.bar i.degraded{background:var(--deg)}.bar i.down{background:var(--down)}.bar i:hover{opacity:1}
+.chart{display:block;width:100%;height:64px;margin:14px 0 10px;color:var(--up);opacity:.9}.chart .dn{fill:var(--down);opacity:.35}.chart.empty{display:flex;align-items:center;justify-content:center;font:12px var(--mono);color:var(--muted);border:1px dashed var(--line-2);border-radius:6px}
 .meta{display:flex;justify-content:space-between;align-items:center;font:12px/1 var(--mono);color:var(--muted)}.meta b{color:var(--ink-soft);font-weight:500;font-variant-numeric:tabular-nums}
 .log .day{padding:14px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:150px 1fr;gap:16px}.log .day:first-child{border-top:0}
 .log h3{margin:0;font:500 12px/1.6 var(--mono);color:var(--muted)}.log p.none{margin:0;color:var(--muted);font-size:14px}
@@ -130,8 +140,8 @@ footer{margin:56px 0 44px;padding-top:20px;border-top:1px solid var(--line);font
 ${open.length ? `<h2>Active incidents</h2>${open.map(incidentHtml).join('')}` : ''}
 ${groups.map(g => `<h2>${esc(g.name)}<span>${g.items.length} ${g.items.length === 1 ? 'service' : 'services'}</span></h2><div class="group">${g.items.map(s => `
 <div class="row"><div class="top"><span class="name"><a href="${esc(s.url)}" rel="noopener">${esc(s.label)}</a></span><span class="pill ${STATUS[s.status]?.[1] || 'up'}">${STATUS[s.status]?.[0] || 'Operational'}</span></div>
-${bar(s)}
-<div class="meta"><span>90 days ago</span><b>${fmtPct(s.uptime.d90)} uptime</b><span>Today</span></div></div>`).join('')}</div>`).join('')}
+${chart(s)}
+<div class="meta"><span>Response time, last 7 days</span><b>${fmtPct(s.uptime.d7)} uptime · ${s.resp == null ? '—' : s.resp + ' ms'} avg</b></div></div>`).join('')}</div>`).join('')}
 <h2>Incident log<span>last 14 days</span></h2>
 <section class="log">${dayList.map(d => `<div class="day"><h3>${d.label}</h3><div>${d.inc.length ? d.inc.map(incidentHtml).join('') : '<p class="none">No incidents reported.</p>'}</div></div>`).join('')}
 ${older.length ? `<div class="day"><h3>Earlier</h3><div>${older.map(incidentHtml).join('')}</div></div>` : ''}</section>
