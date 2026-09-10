@@ -24,6 +24,9 @@ jobs:
       - name: Incidents from issues
         env: { GH_TOKEN: "${{ github.token }}" }
         run: gh api --paginate "repos/${{ github.repository }}/issues?state=all&labels=status&per_page=100" -q '[.[]|select(.pull_request==null)|{title,state,html_url,created_at,closed_at}]' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const a=s.split("\n").filter(Boolean).flatMap(x=>JSON.parse(x));require("fs").writeFileSync("incidents.json",JSON.stringify(a))})'
+      - name: Count uptime checks in the last 24h
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: echo "CHECKS_24H=$(gh api "repos/${{ github.repository }}/actions/workflows/uptime.yml/runs?created=>=$(date -u -d '24 hours ago' +%FT%TZ)&per_page=100" -q '.total_count')" >> "$GITHUB_ENV"
       - run: node scripts/build-status.mjs
       - name: Publish dist to status-site
         run: |
