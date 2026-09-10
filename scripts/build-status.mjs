@@ -47,7 +47,8 @@ const services = cfg.sites.map(site => {
     days, checked: hist.lastUpdated,
   };
 });
-const groups = [...new Set(services.map(s => s.group))].map(g => ({ name: g, items: services.filter(s => s.group === g) }));
+const GROUP_LABEL = { 'Consumer App': 'Consumer App · iOS & Android', 'Agency Platform': 'Agency Platform · B2B' };
+const groups = [...new Set(services.map(s => s.group))].map(g => ({ name: GROUP_LABEL[g] || g, items: services.filter(s => s.group === g) }));
 
 const STATUS = { up: ['Operational', 'up'], degraded: ['Degraded performance', 'degraded'], down: ['Outage', 'down'] };
 const worst = services.some(s => s.status === 'down') ? 'down' : services.some(s => s.status === 'degraded') ? 'degraded' : 'up';
