@@ -1,69 +1,171 @@
+# ProtoQuiz public status page (Upptime). Public repo on purpose: public-repo Actions
+# minutes are free, so this is the one scheduled probe we run on GitHub. Discord alerts
+# come from the repo secret NOTIFICATION_DISCORD_WEBHOOK_URL (Upptime reads secrets, not
+# this file). Order below is the order on the page; CSS turns the first card of each
+# group into a section header, so keep the group boundaries (1, 5, 7, 10) in sync.
 owner: jadenschwartz22-ops
 repo: protoquiz-status
 
 sites:
-  - name: ProtoQuiz Marketing Site
+  # Website
+  - name: Website · protoquiz.com
     url: https://protoquiz.com
-  - name: ProtoQuiz Agency Page
+    slug: proto-quiz-marketing-site
+  - name: Website · Agency program
     url: https://protoquiz.com/agency/
-  - name: ProtoQuiz Trust & Security
+    slug: proto-quiz-agency-page
+  - name: Website · Trust & Security
     url: https://protoquiz.com/trust/
-  - name: ProtoQuiz B2B Terms
+    slug: proto-quiz-trust-and-security
+  - name: Website · Legal & terms
     url: https://protoquiz.com/b2b/terms/
-  - name: Backend API (api.protoquiz.com)
+    slug: proto-quiz-b2-b-terms
+  # Consumer app (iOS and Android share this backend)
+  - name: Consumer App · Backend API
     url: https://api.protoquiz.com/api/monitor?type=health
-    expectedStatusCodes:
-      - 200
-  - name: B2B Platform (Highland reference)
+    slug: backend-api-api-protoquiz-com
+    expectedStatusCodes: [200]
+    maxResponseTime: 2500
+  - name: Consumer App · App Store listing
+    url: https://apps.apple.com/app/id6753611139
+    slug: consumer-app-app-store-listing
+  # Agency platform (B2B). Generic names by design: customer agencies are not listed.
+  - name: Agency Platform · Web app
     url: https://highland.protoquiz.com
-  - name: B2B Platform (Demo)
+    slug: b2-b-platform-highland-reference
+  - name: Agency Platform · Demo environment
     url: https://southmetro.protoquiz.com
+    slug: b2-b-platform-demo
+  - name: Agency Platform · API
+    # Authenticated endpoint. A 401 proves the route and auth layer are serving; a
+    # 200 to an anonymous probe would mean auth is broken, so it is NOT expected.
+    url: https://api.protoquiz.com/api/monitor?type=b2bHealth
+    slug: agency-platform-api
+    expectedStatusCodes: [401]
+    maxResponseTime: 2500
+  # EMS Census
+  - name: EMS Census · Public report
+    url: https://protoquiz.com/census/
+    slug: ems-census-public-report
 
 status-website:
   cname: status.protoquiz.com
   logoUrl: https://protoquiz.com/logo-256.png
+  favicon: https://protoquiz.com/logo-192.png
   name: ProtoQuiz Status
-  introTitle: "**ProtoQuiz Status** — real-time uptime and incident history for protoquiz.com, the backend API, and B2B agency subdomains."
+  theme: dark
+  introTitle: "**ProtoQuiz Status** — live availability for the consumer app, the agency platform, and the EMS Census."
   introMessage: |
-    This page tracks the uptime of every public ProtoQuiz surface. Checks run every **5 minutes**
-    via GitHub Actions. Historical uptime, response times, and incident details are public.
+    Every public ProtoQuiz surface is checked every **5 minutes** from an independent
+    location. Uptime history and response times are published here in full.
 
-    Our SLA commitment is **99.5% monthly uptime** on the backend API and B2B platform
-    (per the [B2B Master Services Agreement §7.5](https://protoquiz.com/legal/msa.html)).
-
-    For incident notifications, watch this repository on
-    [GitHub]($SITE_URL/issues) or subscribe to the RSS feed.
+    Agency customers are covered by a **99.5% monthly uptime** commitment on the agency
+    platform and its API ([Master Services Agreement §7.5](https://protoquiz.com/legal/msa.html)).
+    Incidents are posted here as they are confirmed. For notifications, watch the
+    [incident feed](https://github.com/jadenschwartz22-ops/protoquiz-status/issues) or its RSS.
   navbar:
     - title: Status
       href: /
-    - title: Trust & Security
-      href: https://protoquiz.com/trust/
+    - title: Website
+      href: https://protoquiz.com
     - title: Agency Platform
       href: https://protoquiz.com/agency/
-    - title: GitHub
-      href: https://github.com/$OWNER/$REPO
+    - title: EMS Census
+      href: https://protoquiz.com/census/
+    - title: Trust & Security
+      href: https://protoquiz.com/trust/
+  metaTags:
+    - name: description
+      content: Live uptime and incident history for ProtoQuiz — consumer app, agency platform, and EMS Census.
+    - name: theme-color
+      content: "#06050a"
+  i18n:
+    liveStatus: Services
+    allSystemsOperational: All services operational
+    activeIncidents: Active incidents
+    pastIncidents: Incident history
+    overallUptime: "Uptime"
+    averageResponseTime: "Response time"
+  customHeadHtml: |
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  css: |
+    :root, :root[data-theme] {
+      --body-background-color: #06050a;
+      --body-text-color: #f4f1ea;
+      --card-background-color: #100d08;
+      --card-border-color: #1c1a14;
+      --nav-background-color: #06050a;
+      --nav-border-bottom-color: #1c1a14;
+      --nav-current-border-bottom-color: #ffb000;
+      --up-border-left-color: #00d27a;
+      --degraded-border-left-color: #ffb000;
+      --down-border-left-color: #ff3b30;
+      --down-background-color: #2a0d0b;
+      --tag-color: #06050a;
+      --tag-up-background-color: #00d27a;
+      --tag-down-background-color: #ff3b30;
+      --tag-degraded-background-color: #ffb000;
+      --change-background-color: #ffb000;
+      --submit-button-background-color: #ffb000;
+      --submit-button-border-color: #cc8a00;
+      --submit-button-color: #06050a;
+      --error-button-background-color: #ff3b30;
+      --error-button-border-color: #cc2e25;
+      --error-button-color: #f4f1ea;
+      --graph-opacity: 0.9;
+      --graph-filter: saturate(0.85);
+    }
+    html { color-scheme: dark; }
+    body { font-family: Inter, -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; letter-spacing: -0.005em; }
+    nav { backdrop-filter: blur(8px); }
+    nav ul a { font-weight: 500; color: #a8a399; }
+    nav ul a:hover, nav ul a[aria-current] { color: #f4f1ea; }
+    nav .logo div { font-weight: 700; letter-spacing: -0.01em; }
+    header h1 { font-size: 1.75rem; line-height: 1.25; font-weight: 500; color: #a8a399; letter-spacing: -0.02em; }
+    header h1 strong { color: #f4f1ea; font-weight: 700; }
+    p.lead { color: #a8a399; font-size: 0.98rem; line-height: 1.6; }
+    p.lead strong { color: #f4f1ea; font-weight: 600; }
+    a { color: #ffb000; text-decoration-color: #7a5a00; }
+    a:hover { text-decoration-color: #ffb000; }
+    h2 { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8478; }
+    article { border-radius: 10px; border: 1px solid var(--card-border-color); }
+    article.graph h4, article h4 { font-weight: 600; letter-spacing: -0.01em; }
+    article.graph .icon { display: none; }
+    .data, dl, dl dt, dl dd { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
+    dl dt { color: #8a8478; }
+    .r label { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; color: #8a8478; }
+    .r input:checked + label { color: #ffb000; }
+    .tag { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 700; letter-spacing: 0.04em; border-radius: 4px; }
+    footer { color: #8a8478; font-size: 0.85rem; }
+    footer a { color: #a8a399; }
+    /* Section labels: the first card of each group carries the group name above it.
+       Boundaries must match the `sites` order: 1 Website, 5 Consumer App, 7 Agency Platform, 10 EMS Census. */
+    .live-status article.graph { position: relative; }
+    .live-status article.graph:nth-of-type(1), .live-status article.graph:nth-of-type(5),
+    .live-status article.graph:nth-of-type(7), .live-status article.graph:nth-of-type(10) { margin-top: 2.6rem; }
+    .live-status article.graph:nth-of-type(1)::before, .live-status article.graph:nth-of-type(5)::before,
+    .live-status article.graph:nth-of-type(7)::before, .live-status article.graph:nth-of-type(10)::before {
+      position: absolute; left: 0; top: -1.7rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #ffb000; font-family: Inter, sans-serif; }
+    .live-status article.graph:nth-of-type(1)::before { content: "Website"; }
+    .live-status article.graph:nth-of-type(5)::before { content: "Consumer App · iOS & Android"; }
+    .live-status article.graph:nth-of-type(7)::before { content: "Agency Platform · B2B"; }
+    .live-status article.graph:nth-of-type(10)::before { content: "EMS Census"; }
 
-# Notification channels — wire up later if/when you want alerts in Discord/Slack.
-# See https://upptime.js.org/docs/notifications for setup.
-notifications:
-  - type: discord
-    webhook: $DISCORD_WEBHOOK_URL
-
-# Assign incidents to a default user/team.
 assignees:
   - jadenschwartz22-ops
 
-# Workflow tuning — every 5 minutes is the practical floor on GitHub Actions
-# (free-tier minutes budget). Don't go lower without enabling paid runners.
+# Every 5 minutes is the practical floor on GitHub Actions. Free here: public repo.
 workflowSchedule:
-  graphs: "0 0 * * *"        # daily graph regeneration at midnight UTC
-  responseTime: "0 23 * * *" # daily response-time summary at 23:00 UTC
-  staticSite: "0 1 * * *"    # daily site regeneration at 01:00 UTC
-  summary: "0 0 * * *"       # daily README summary update
-  updates: "0 3 * * *"       # daily upstream Upptime update check
-  updateTemplate: "0 0 1 * *" # monthly template update check
-  uptime: "*/5 * * * *"      # every 5 minutes (the actual uptime check)
+  graphs: "0 0 * * *"
+  responseTime: "0 23 * * *"
+  staticSite: "0 1 * * *"
+  summary: "0 0 * * *"
+  updates: "0 3 * * *"
+  updateTemplate: "0 0 1 * *"
+  uptime: "*/5 * * * *"
 
-# Skip optional features we don't need yet.
 skipDescriptionUpdate: false
 skipPoweredByReadme: false
