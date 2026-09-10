@@ -79,8 +79,8 @@ const incidentHtml = (i) => {
 const byDayInc = {};
 for (const i of recent) (byDayInc[dayKey(Date.parse(i.created_at))] ||= []).push(i);
 const dayList = [];
-for (let d = 0; d < 14; d++) { const t = now - d * 864e5, k = dayKey(t); dayList.push({ label: fmtDate(t), inc: byDayInc[k] || [] }); }
-const older = recent.filter(i => Date.parse(i.created_at) < now - 14 * 864e5);
+for (let d = 0; d < 7; d++) { const t = now - d * 864e5, k = dayKey(t); dayList.push({ label: fmtDate(t), inc: byDayInc[k] || [] }); }
+const older = recent.filter(i => Date.parse(i.created_at) < now - 7 * 864e5);
 
 const spark = (ms) => {
   if (ms.length < 2) return '';
@@ -146,7 +146,7 @@ ${groups.map(g => `<h2>${esc(g.name)}<span>${g.items.length} ${g.items.length ==
 <div class="row"><div class="top"><span class="name"><a href="${esc(s.url)}" rel="noopener">${esc(s.label)}</a></span><span class="pill ${STATUS[s.status]?.[1] || 'up'}">${STATUS[s.status]?.[0] || 'Operational'}</span></div>
 ${chart(s)}
 <div class="meta"><span>Daily response time, 30 days</span><b>${fmtPct(s.uptime.d30)} uptime · ${s.avg30 == null ? '—' : s.avg30 + ' ms'} avg</b></div></div>`).join('')}</div>`).join('')}
-<h2>Incident log<span>last 14 days</span></h2>
+<h2>Incident log<span>last 7 days</span></h2>
 <section class="log">${dayList.map(d => `<div class="day"><h3>${d.label}</h3><div>${d.inc.length ? d.inc.map(incidentHtml).join('') : '<p class="none">No incidents reported.</p>'}</div></div>`).join('')}
 ${older.length ? `<div class="day"><h3>Earlier</h3><div>${older.map(incidentHtml).join('')}</div></div>` : ''}</section>
 <footer><span>Agency customers: 99.5% monthly uptime commitment on the agency platform and API (<a href="https://protoquiz.com/legal/msa.html">MSA §7.5</a>).</span>
