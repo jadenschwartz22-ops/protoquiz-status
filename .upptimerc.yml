@@ -24,11 +24,11 @@ sites:
     url: https://southmetro.protoquiz.com
     slug: b2-b-platform-demo
   - name: Agency Platform · API
-    # Authenticated endpoint. A 401 proves the route and auth layer are serving; a
-    # 200 to an anonymous probe would mean auth is broken, so it is NOT expected.
-    url: https://api.protoquiz.com/api/monitor?type=b2bHealth
+    # The B2B router service (Cloud Run ems-router-b2b, split from api. on 2026-10-03).
+    # Public health route; min-instances 0, so this also watches cold-start time.
+    url: https://b2b-api.protoquiz.com/api/monitor?type=health
     slug: agency-platform-api
-    expectedStatusCodes: [401]
+    expectedStatusCodes: [200]
     maxResponseTime: 2500
   # EMS Census
   - name: EMS Census · Public report
