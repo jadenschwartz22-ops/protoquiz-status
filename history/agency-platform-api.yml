@@ -1,7 +1,7 @@
-url: https://api.protoquiz.com/api/monitor?type=b2bHealth
+url: https://b2b-api.protoquiz.com/api/monitor?type=health
 status: up
-code: 401
-responseTime: 163
-lastUpdated: 2026-10-03T01:50:23.944Z
+code: 200
+responseTime: 423
+lastUpdated: 2026-10-03T11:48:29.198Z
 startTime: 2026-09-10T13:02:32.791Z
 generator: Upptime <https://github.com/upptime/upptime>
