@@ -97,7 +97,7 @@ const pillClass = s => s.status === 'down' ? 'down' : s.notices.some(n => nState
 const rowHtml = s => `<div class="row"><div class="top"><span class="name"><a href="${esc(s.url)}" rel="noopener">${esc(s.name)}</a></span>
 <span class="pill ${pillClass(s)}">${{ down: 'Outage', degraded: 'Degraded', maint: 'Maintenance', up: 'Operational' }[pillClass(s)]}${s.lastMs ? `<span class="ms">${s.lastMs} ms</span>` : ''}</span></div>
 ${s.notices.filter(n => nState(n) !== 'ended').map(bandHtml).join('')}${bar(s)}<div class="axis"><span>90 days ago</span><span>${s.checks.toLocaleString('en-US')} checks · ${s.down ? dur(s.down) + ' down' : 'no downtime'}</span><span>Today</span></div>
-<div class="stats"><div class="k"><span><b>${fmtPct(s.uptime)}</b> uptime</span><span><b>${ms(s.p50)}</b> p50</span><span><b>${ms(s.p95)}</b> p95</span><span>last 24 h</span></div>${spark(s.hourly)}</div></div>`;
+<div class="stats"><div class="k"><span>${s.n24 < 20 ? '<b>Limited data</b>' : `<b>${fmtPct(s.uptime)}</b> uptime`}</span><span><b>${ms(s.p50)}</b> p50</span><span><b>${ms(s.p95)}</b> p95</span><span>last 24 h</span></div>${spark(s.hourly)}</div></div>`;
 
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -154,7 +154,7 @@ footer{margin:56px 0 44px;padding-top:20px;border-top:1px solid var(--line);font
 <section class="hero"><span class="dot ${stale ? 'degraded' : state}"></span><div>
 <p class="eyebrow">System status</p>
 <h1 class="${stale ? 'degraded' : state}">${stale ? 'Status feed delayed' : banner}</h1>
-<p class="sub">${services.length} services · <b>${total24.toLocaleString('en-US')}</b> checks in the last 24 hours, every 5 minutes from outside our network${firstDay ? ` · data since ${fmtDate(Date.parse(firstDay + 'T12:00:00Z'))}` : ''} · updated <b>${fmtTime(roll.generated * 1e3)}</b></p>
+<p class="sub">${services.length} services · <b>${total24.toLocaleString('en-US')}</b> checks in the last 24 hours, continuous checks from outside our network${firstDay ? ` · data since ${fmtDate(Date.parse(firstDay + 'T12:00:00Z'))}` : ''} · updated <b>${fmtTime(roll.generated * 1e3)}</b></p>
 </div></section>
 ${(() => { const names = new Set(services.map(s => s.name)); const x = NOTICES.filter(n => nState(n) !== 'ended' && !names.has(n.component)); return x.length ? `<h2>Notices</h2>${x.map(n => `<div class="band ${n.kind}"><b>${esc(n.component)}</b> ${esc(n.text)}<span>${n.t0 > now ? 'Starts ' + fmtTime(n.t0) : noticeWhen(n)}</span></div>`).join('')}` : ''; })()}
 ${open.length ? `<h2>Active incidents</h2>${open.map(incidentHtml).join('')}` : ''}
