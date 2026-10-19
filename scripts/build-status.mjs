@@ -46,6 +46,7 @@ const services = roll.services.map(s => {
   let checks = 0, down = 0;
   for (let i = DAYS - 1; i >= 0; i--) {
     const k = dayKey(now - i * 864e5); let d = s.days[k];
+    if (d && d.n < (s.hourlyCheck ? 24 : 288) * .05) d = undefined;  // a 1-2 check stub (a trial run before a probe was really on) is not a day of data
     if (d) {  // declared notices are not downtime
       const wins = (d.down || []).map(([a, b, c]) => ({ a: a * 1e3, b: b * 1e3, c, decl: overlap(a * 1e3, b * 1e3, ns) }));
       d = { ...d, wins, dm: wins.length ? wins.reduce((m, w) => m + Math.max(0, (w.b - w.a - w.decl) / 6e4), 0) : d.dm };
