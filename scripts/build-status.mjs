@@ -4,7 +4,7 @@
 // real probe result: check counts, p50/p95, and down intervals (2+ consecutive failed 5-minute checks).
 // Incidents = those down intervals plus GitHub issues labelled "status" plus declared notices (notices.json next to
 // rollup.json on the data branch: {id, component, kind: maintenance|degraded, from, to|null, text}). Notices are shown as
-// bands and log entries and are NOT downtime: their overlap with a down interval is subtracted from the uptime math.
+// top cards (Maintenance in progress / Scheduled maintenance), an "Under maintenance" pill, blue day cells and log entries (times re-rendered in the viewer's zone by the page script) and are NOT downtime: their overlap with a down interval is subtracted from the uptime math.
 // Down intervals carry a sanitized cause from a fixed label set ([start, end, cause]; older data has none).
 // The page renders fully without JS; a small inline script adds the click/keyboard day detail from embedded data.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -28,6 +28,14 @@ const NOTICES = (Array.isArray(noticesRaw) ? noticesRaw : []).filter(n => n && n
   .map(n => ({ ...n, t0: Date.parse(n.from), t1: n.to ? Date.parse(n.to) : null, kind: n.kind === 'degraded' ? 'degraded' : 'maintenance' }))
   .filter(n => !n.t1 || n.t1 > now - DAYS * 864e5);
 const nState = n => n.t0 > now ? 'upcoming' : !n.t1 || n.t1 > now ? 'active' : 'ended';
+// Window wording. Self-contained on purpose: also inlined into the page script, which re-renders it in the viewer's own time zone.
+const winText = (m, a, b, tz) => {
+  const o = { timeZone: tz }, z = { ...o, hour: 'numeric', minute: '2-digit', timeZoneName: 'short' };
+  const full = t => new Date(t).toLocaleString('en-US', { ...z, month: 'short', day: 'numeric' }), clock = t => new Date(t).toLocaleTimeString('en-US', z);
+  const day = t => new Date(t).toLocaleDateString('en-CA', o), end = b && (day(b) === day(a) ? clock(b) : full(b));
+  const min = b && Math.max(1, Math.round((b - a) / 6e4)), len = min >= 60 ? Math.floor(min / 60) + ' h' + (min % 60 ? ' ' + (min % 60) + ' min' : '') : min + ' min';
+  return m === 'u' ? (b ? `${full(a)} to ${end}` : `Starts ${full(a)}`) : m === 'a' ? `Started ${full(a)}${b ? ` · expected to end ${end}` : ''}` : `${full(a)} to ${end} · ${len}`;
+};
 const NLABEL = { maintenance: 'Maintenance', degraded: 'Degraded performance' };
 const overlap = (a, b, ns) => ns.reduce((m, n) => m + Math.max(0, Math.min(b, n.t1 ?? Infinity) - Math.max(a, n.t0)), 0);  // ms of [a,b] declared
 
@@ -43,7 +51,7 @@ const services = roll.services.map(s => {
       d = { ...d, wins, dm: wins.length ? wins.reduce((m, w) => m + Math.max(0, (w.b - w.a - w.decl) / 6e4), 0) : d.dm };
       checks += d.n; down += d.dm;
     }
-    cells.push({ k, d });
+    cells.push({ k, d, mt: ns.find(n => dayKey(n.t0) <= k && k <= dayKey(n.t1 ?? now) && n.t0 <= now)?.kind });
   }
   const covered = checks * step;
   return { ...s, cells, checks, down, notices: ns, uptime: covered ? 100 * Math.max(0, 1 - down / covered) : null };
@@ -63,9 +71,12 @@ const outages = services.flatMap(s => s.outages.map(o => ({ svc: s.name, cause: 
 const issueItems = issues.filter(i => Date.parse(i.created_at) > now - DAYS * 864e5).map(i => ({ svc: String(i.title).replace(/[\u{1F6D1}⚠️✅]/gu, '').trim(), t0: Date.parse(i.created_at), t1: i.closed_at ? Date.parse(i.closed_at) : null, href: i.html_url }));
 const noticeEvents = NOTICES.filter(n => n.t0 <= now).map(n => ({ svc: n.component, t0: n.t0, t1: n.t1, notice: n }));
 const events = [...outages, ...issueItems, ...noticeEvents].sort((a, b) => b.t0 - a.t0);
-const noticeWhen = n => n.t1 ? `${fmtTime(n.t0)} to ${fmtTime(n.t1)}${n.t1 > now ? ' (scheduled end)' : ''}` : `Since ${fmtTime(n.t0)}`;
-const bandHtml = n => `<div class="band ${n.kind}"><b>${nState(n) === 'upcoming' ? 'Scheduled ' + NLABEL[n.kind].toLowerCase() : NLABEL[n.kind]}</b> ${esc(n.text)}<span>${n.t0 > now ? 'Starts ' + fmtTime(n.t0) : noticeWhen(n)}</span></div>`;
-const noticeIncident = n => `<article class="incident notice ${n.kind}"><h4>${NLABEL[n.kind]}: ${esc(n.component)}</h4><p class="m">${esc(n.text)}</p><p class="m">${noticeWhen(n)}</p></article>`;
+const ST = { upcoming: ['u', 'Scheduled'], active: ['a', 'In progress'], ended: ['e', 'Completed'] };
+const noticeWhen = n => { const [m] = ST[nState(n)]; return `<span class="win" data-m="${m}" data-a="${n.t0}" data-b="${n.t1 ?? ''}">${esc(winText(m, n.t0, n.t1, TZ))}</span>`; };
+const noticeTitle = n => (nState(n) === 'upcoming' && n.kind === 'maintenance' ? 'Scheduled maintenance' : nState(n) === 'active' && n.kind === 'maintenance' ? 'Maintenance in progress' : NLABEL[n.kind]) + ': ' + esc(n.component);
+const noticeText = n => nState(n) === 'ended' ? (n.kind === 'maintenance' ? 'This maintenance window has completed.' : 'This notice has been resolved.') : esc(n.text);
+const bandHtml = n => `<div class="band ${n.kind}"><b>${noticeTitle(n)}</b><p>${noticeText(n)}</p>${noticeWhen(n)}</div>`;
+const noticeIncident = n => `<article class="incident notice ${n.kind}"><h4>${NLABEL[n.kind]}: ${esc(n.component)}<em class="st">${ST[nState(n)][1]}</em></h4><p class="m">${noticeText(n)}</p><p class="m">${noticeWhen(n)}</p></article>`;
 const incidentHtml = o => o.notice ? noticeIncident(o.notice) : `<article class="incident ${o.t1 ? '' : 'open'}">
   <h4>${o.href ? `<a href="${esc(o.href)}">${esc(o.svc)}</a>` : esc(o.svc) + (o.t1 ? ' outage' : ' outage, ongoing')}</h4>
   <p class="m">${o.t1 ? `Down ${dur((o.t1 - o.t0) / 6e4)} · ${fmtTime(o.t0)} to ${fmtTime(o.t1)}` : `Since ${fmtTime(o.t0)}`}${o.cause ? ` · ${esc(o.cause)}` : ''}</p></article>`;
@@ -81,22 +92,23 @@ const spark = h => {
   return `<svg class="spark" viewBox="0 0 ${w} ${ht}" width="${w}" height="${ht}" role="img" aria-label="Median response time per hour, last 24 hours"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 };
 const num = v => v == null ? '—' : v.toLocaleString('en-US') + ' ms';
-const dayDetail = (k, d) => {
+const dayDetail = (k, d, mt) => {
   const causes = [...new Set(d.wins.map(w => w.c).filter(Boolean))];
   const down = d.wins.length ? d.wins.map(w => `${fmtClock(w.a)} to ${fmtClock(w.b)} (${dur((w.b - w.a) / 6e4)})${w.c ? ' · ' + esc(w.c) : ''}${w.decl ? ' · declared notice' : ''}`).join('<br>') : 'None';
   return `<h5>${fmtDate(Date.parse(k + 'T12:00:00Z'))}</h5><dl><dt>Down windows</dt><dd>${down}</dd>`
     + `<dt>Failed checks</dt><dd>${d.f} of ${d.n}</dd><dt>Response time</dt><dd>p50 ${num(d.p50)} · p95 ${num(d.p95)}</dd>`
+    + (mt ? `<dt>Notice</dt><dd>${mt === 'maintenance' ? 'Maintenance' : 'Degraded performance'} declared, not counted as downtime</dd>` : '')
     + `<dt>Cause</dt><dd>${causes.length ? causes.map(esc).join(', ') : d.wins.length ? 'Not recorded' : d.f ? 'Isolated failed check, not counted as downtime' : 'None'}</dd></dl>`;
 };
-const dayData = Object.fromEntries(services.map(s => [s.id, Object.fromEntries(s.cells.filter(c => c.d).map(c => [c.k, dayDetail(c.k, c.d)]))]));
-const bar = s => `<div class="bar" role="group" data-s="${esc(s.id)}" aria-label="${esc(s.name)} availability, last 90 days">${s.cells.map(({ k, d }) =>
-  `<i${d ? ` data-k="${k}"` : ''} class="${!d ? 'none' : d.dm === 0 ? '' : d.dm < 15 ? 'deg' : 'down'}" title="${k}: ${!d ? 'no data' : `${d.dm ? dur(d.dm) + ' down' : 'no downtime'}, ${d.n} checks${d.p50 ? ', p50 ' + d.p50 + ' ms' : ''}`}"></i>`).join('')}</div>
+const dayData = Object.fromEntries(services.map(s => [s.id, Object.fromEntries(s.cells.filter(c => c.d).map(c => [c.k, dayDetail(c.k, c.d, c.mt)]))]));
+const bar = s => `<div class="bar" role="group" data-s="${esc(s.id)}" aria-label="${esc(s.name)} availability, last 90 days">${s.cells.map(({ k, d, mt }) =>
+  `<i${d ? ` data-k="${k}"` : ''} class="${!d ? 'none' : d.dm === 0 ? (mt === 'maintenance' ? 'mt' : mt ? 'deg' : '') : d.dm < 15 ? 'deg' : 'down'}" title="${k}: ${!d ? 'no data' : `${d.dm ? dur(d.dm) + ' down' : mt === 'maintenance' ? 'maintenance, no downtime' : 'no downtime'}, ${d.n} checks${d.p50 ? ', p50 ' + d.p50 + ' ms' : ''}`}"></i>`).join('')}</div>
 <div class="dp" id="dp-${esc(s.id)}" hidden aria-live="polite"></div>`;
 const ms = v => v == null ? '—' : v + ' ms';
 const pillClass = s => s.status === 'down' ? 'down' : s.notices.some(n => nState(n) === 'active' && n.kind === 'degraded') ? 'degraded' : s.notices.some(n => nState(n) === 'active') ? 'maint' : 'up';
 const rowHtml = s => `<div class="row"><div class="top"><span class="name"><a href="${esc(s.url)}" rel="noopener">${esc(s.name)}</a></span>
-<span class="pill ${pillClass(s)}">${{ down: 'Outage', degraded: 'Degraded', maint: 'Maintenance', up: 'Operational' }[pillClass(s)]}${s.lastMs ? `<span class="ms">${s.lastMs} ms</span>` : ''}</span></div>
-${s.notices.filter(n => nState(n) !== 'ended').map(bandHtml).join('')}${bar(s)}<div class="axis"><span>90 days ago</span><span>${s.checks.toLocaleString('en-US')} checks · ${s.down ? dur(s.down) + ' down' : 'no downtime'}</span><span>Today</span></div>
+<span class="pill ${pillClass(s)}">${{ down: 'Outage', degraded: 'Degraded', maint: 'Under maintenance', up: 'Operational' }[pillClass(s)]}${s.lastMs ? `<span class="ms">${s.lastMs} ms</span>` : ''}</span></div>
+${bar(s)}<div class="axis"><span>90 days ago</span><span>${s.checks.toLocaleString('en-US')} checks · ${s.down ? dur(s.down) + ' down' : 'no downtime'}</span><span>Today</span></div>
 <div class="stats"><div class="k"><span>${s.n24 < 20 ? '<b>Limited data</b>' : `<b>${fmtPct(s.uptime)}</b> uptime`}</span><span><b>${ms(s.p50)}</b> p50</span><span><b>${ms(s.p95)}</b> p95</span><span>last 24 h</span></div>${spark(s.hourly)}</div></div>`;
 
 const html = `<!doctype html>
@@ -143,8 +155,9 @@ footer{margin:56px 0 44px;padding-top:20px;border-top:1px solid var(--line);font
 .bar i[data-k]{cursor:pointer}.bar i.sel{outline:2px solid var(--ink);opacity:1}.bar i:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
 .dp{background:var(--panel-2);border:1px solid var(--line-2);border-radius:8px;padding:12px 14px;margin:8px 0 10px;font:12px/1.5 var(--mono);color:var(--ink-soft)}.dp[hidden]{display:none}
 .dp h5{margin:0 0 8px;font:600 12px/1 var(--mono);color:var(--ink)}.dp dl{display:grid;grid-template-columns:110px 1fr;gap:4px 14px;margin:0}.dp dt{color:var(--muted)}.dp dd{margin:0;color:var(--ink)}
-.band{margin:12px 0 0;padding:9px 12px;border-left:2px solid var(--info);background:rgba(77,163,255,.08);border-radius:0 6px 6px 0;font-size:13px;color:var(--ink-soft)}.band b{color:var(--ink);font-weight:600;margin-right:6px}.band span{display:block;margin-top:3px;font:12px/1.4 var(--mono);color:var(--muted)}
-.band.degraded{border-color:var(--deg);background:rgba(255,176,0,.08)}h2+.band{margin-top:0}.incident.notice{border-color:var(--info)}.incident.notice.degraded{border-color:var(--deg)}
+.band{margin:12px 0 0;padding:9px 12px;border-left:2px solid var(--info);background:rgba(77,163,255,.08);border-radius:0 6px 6px 0;font-size:13px;color:var(--ink-soft)}.band b{color:var(--ink);font-weight:600;margin-right:6px}.band .win{font:12px/1.4 var(--mono);color:var(--muted)}
+.band p{margin:4px 0 0;color:var(--ink-soft)}.band .win{display:block;margin-top:6px}.band{margin:0 0 10px;padding:14px 16px}.band b{display:block;margin:0}
+.band.degraded{border-color:var(--deg);background:rgba(255,176,0,.08)}h2+.band{margin-top:0}.bar i.mt{background:var(--info)}.incident h4 em.st{font:500 11px/1 var(--mono);font-style:normal;color:var(--muted);margin-left:10px}.incident.notice .win{font:12px/1.5 var(--mono)}.incident.notice{border-color:var(--info)}.incident.notice.degraded{border-color:var(--deg)}
 @media(max-width:480px){.wrap{padding:0 16px}.brand{letter-spacing:.06em}.brand span{display:none}nav a{margin-left:10px;letter-spacing:.04em;font-size:10px}}
 @media(max-width:680px){.stats{flex-direction:column;align-items:flex-start}.bar{height:24px}.dp dl{grid-template-columns:1fr;gap:0}.dp dd{margin-bottom:6px}}
 </style></head><body>
@@ -156,7 +169,7 @@ footer{margin:56px 0 44px;padding-top:20px;border-top:1px solid var(--line);font
 <h1 class="${stale ? 'degraded' : state}">${stale ? 'Status feed delayed' : banner}</h1>
 <p class="sub">${services.length} services · <b>${total24.toLocaleString('en-US')}</b> checks in the last 24 hours, continuous checks from outside our network${firstDay ? ` · data since ${fmtDate(Date.parse(firstDay + 'T12:00:00Z'))}` : ''} · updated <b>${fmtTime(roll.generated * 1e3)}</b></p>
 </div></section>
-${(() => { const names = new Set(services.map(s => s.name)); const x = NOTICES.filter(n => nState(n) !== 'ended' && !names.has(n.component)); return x.length ? `<h2>Notices</h2>${x.map(n => `<div class="band ${n.kind}"><b>${esc(n.component)}</b> ${esc(n.text)}<span>${n.t0 > now ? 'Starts ' + fmtTime(n.t0) : noticeWhen(n)}</span></div>`).join('')}` : ''; })()}
+${NOTICES.some(n => nState(n) !== 'ended') ? `<h2 class="nh">Maintenance and notices</h2>${NOTICES.filter(n => nState(n) !== 'ended').sort((a, b) => a.t0 - b.t0).map(bandHtml).join('')}` : ''}
 ${open.length ? `<h2>Active incidents</h2>${open.map(incidentHtml).join('')}` : ''}
 ${groups.map(g => `<h2>${esc(g.name)}<span>${g.items.length} ${g.items.length === 1 ? 'service' : 'services'}</span></h2><div class="group">${g.items.map(rowHtml).join('')}</div>`).join('')}
 <h2>Incident log<span>last 7 days</span></h2>
@@ -167,6 +180,7 @@ ${older.length ? `<div class="day"><h3>Earlier</h3><div>${older.map(incidentHtml
 </main>
 <script type="application/json" id="pq-d">${JSON.stringify(dayData).replace(/</g, '\\u003c')}</script>
 <script>
+(function(){var w=${winText.toString()};document.querySelectorAll('.win').forEach(function(e){try{e.textContent=w(e.dataset.m,+e.dataset.a,e.dataset.b?+e.dataset.b:null)}catch(x){}})})();
 (function(){var D=JSON.parse(document.getElementById('pq-d').textContent);
 document.querySelectorAll('.bar').forEach(function(b){var id=b.dataset.s,p=document.getElementById('dp-'+id),c=[].slice.call(b.querySelectorAll('i[data-k]'));
 if(!c.length)return;
