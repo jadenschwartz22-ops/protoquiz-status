@@ -59,7 +59,7 @@ status-website:
     Every public ProtoQuiz surface is checked every **5 minutes** from an independent
     location. Uptime history and response times are published here in full.
 
-    Agency customers are covered by a **99.5% monthly uptime** commitment on the agency
+    Agency customers are covered by a **99.0% monthly uptime** commitment on the agency
     platform and its API ([Master Services Agreement §7.5](https://protoquiz.com/legal/msa.html)).
     Incidents are posted here as they are confirmed. For notifications, watch the
     [incident feed](https://github.com/jadenschwartz22-ops/protoquiz-status/issues) or its RSS.

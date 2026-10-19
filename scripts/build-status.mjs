@@ -162,7 +162,7 @@ ${groups.map(g => `<h2>${esc(g.name)}<span>${g.items.length} ${g.items.length ==
 <h2>Incident log<span>last 7 days</span></h2>
 <section class="log">${dayList.map(d => `<div class="day"><h3>${d.label}</h3><div>${d.inc.length ? d.inc.map(incidentHtml).join('') : '<p class="none">No incidents reported.</p>'}</div></div>`).join('')}
 ${older.length ? `<div class="day"><h3>Earlier</h3><div>${older.map(incidentHtml).join('')}</div></div>` : ''}</section>
-<footer><span>Agency customers: 99.5% monthly uptime commitment on the agency platform and API (<a href="https://protoquiz.com/legal/msa.html">MSA §7.5</a>).</span>
+<footer><span>Agency customers: 99.0% monthly uptime commitment on the agency platform and API (<a href="https://protoquiz.com/legal/msa.html">MSA §7.5</a>).</span>
 <span><a href="https://github.com/${OWNER}/${REPO}/issues">Incident feed</a> · <a href="https://github.com/${OWNER}/${REPO}/issues.atom">RSS</a> · <a href="https://github.com/${OWNER}/${REPO}/blob/data/rollup.json">Raw data</a></span></footer>
 </main>
 <script type="application/json" id="pq-d">${JSON.stringify(dayData).replace(/</g, '\\u003c')}</script>
