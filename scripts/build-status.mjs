@@ -165,10 +165,10 @@ footer{margin:56px 0 44px;padding-top:20px;border-top:1px solid var(--line);font
 <header><div class="wrap"><a class="brand" href="/"><img src="https://protoquiz.com/logo-128.png" alt="">ProtoQuiz&trade; <span>Status</span></a>
 <nav><a href="https://protoquiz.com">Website</a><a href="https://protoquiz.com/agency/">For agencies</a><a href="https://protoquiz.com/census/">Census</a><a href="https://protoquiz.com/trust/">Trust</a></nav></div></header>
 <main class="wrap">
-<section class="hero"><span class="dot ${stale ? 'degraded' : state}"></span><div>
+<section class="hero" data-g="${roll.generated}"><span class="dot ${stale ? 'degraded' : state}"></span><div>
 <p class="eyebrow">System status</p>
-<h1 class="${stale ? 'degraded' : state}">${stale ? 'Status feed delayed' : banner}</h1>
-<p class="sub">${services.length} services · <b>${total24.toLocaleString('en-US')}</b> checks in the last 24 hours, continuous checks from outside our network${firstDay ? ` · data since ${fmtDate(Date.parse(firstDay + 'T12:00:00Z'))}` : ''} · updated <b>${fmtTime(roll.generated * 1e3)}</b></p>
+<h1 class="${stale ? 'degraded' : state}">${stale ? 'Status checks delayed' : banner}</h1>
+<p class="sub">${stale ? `last verified <b>${fmtTime(roll.generated * 1e3)}</b>; live status unknown` : `${services.length} services · <b>${total24.toLocaleString('en-US')}</b> checks in the last 24 hours, continuous checks from outside our network${firstDay ? ` · data since ${fmtDate(Date.parse(firstDay + 'T12:00:00Z'))}` : ''} · updated <b>${fmtTime(roll.generated * 1e3)}</b>`}</p>
 </div></section>
 ${NOTICES.some(n => nState(n) !== 'ended') ? `<h2 class="nh">Maintenance and notices</h2>${NOTICES.filter(n => nState(n) !== 'ended').sort((a, b) => a.t0 - b.t0).map(bandHtml).join('')}` : ''}
 ${open.length ? `<h2>Active incidents</h2>${open.map(incidentHtml).join('')}` : ''}
@@ -192,6 +192,10 @@ b.addEventListener('click',function(e){var i=e.target.closest('i[data-k]');if(i)
 b.addEventListener('keydown',function(e){var i=e.target.closest('i[data-k]');if(!i)return;
 if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(i)}
 else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();var n=c.indexOf(i)+(e.key==='ArrowLeft'?-1:1);if(c[n]){i.tabIndex=-1;c[n].tabIndex=0;c[n].focus()}}})})})();
+</script>
+<script>
+(function(){var h=document.querySelector('.hero'),g=+h.dataset.g*1e3,t;function c(){if(Date.now()-g<=45*6e4)return;var e=h.querySelector('h1');e.className='degraded';e.textContent='Status checks delayed';h.querySelector('.dot').className='dot degraded';
+h.querySelector('.sub').textContent='last verified '+new Date(g).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'})+'; live status unknown';clearInterval(t)}t=setInterval(c,6e4);c()})();
 </script></body></html>`;
 
 mkdirSync('dist', { recursive: true });
